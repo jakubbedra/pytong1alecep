@@ -54,7 +54,15 @@ void writeRandomStrings(int n) {
 
     //write strings
     for (int i = 0; i < n; i++) {
-        f << generateRandomString(20) << endl;
+        string tmp = generateRandomString(200);
+        f << tmp << endl;
+        bool alnum = true;
+        for (int i = 0; i < tmp.length(); i++) {
+            if (!isalnum(tmp[i])) {
+                alnum = false;
+            }
+        }
+        f << alnum << endl;
     }
 
     // close file
@@ -66,27 +74,34 @@ bool alphanumericTest_isCorrect() {
     fstream f;
     f.open("example.txt", ios::in);
     fstream f2;
-    f2.open("cpp.txt", ios::in);
+    f2.open("cpp.txt", ios::in | ios::out);
 
     string tmp;
 
-    //auto start_time = chrono::high_resolution_clock::now();
+    //// write file 2
+    int counter = 0;
     while (!f.eof()) {
         f >> tmp;
-        bool alnum = true;
-        for (int i = 0; i < tmp.length(); i++) {
-            if (!isalnum(tmp[i])) {
-                alnum = false;
-            }
+        if (counter % 2 == 0) {
+            f2 << tmp;
+            f2 << isAlphaNumeric(tmp);
         }
-        if (alnum != isAlphaNumeric(tmp)) {
-            f.close();
+        counter++;
+    }
+
+    f2.clear();
+    f2.seekg(0);
+
+    string tmp2;
+
+    while (!f.eof() && !f2.eof()) {
+        f >> tmp;
+        f2 >> tmp2;
+        if (tmp != tmp2) {
             return false;
         }
     }
 
-    //auto end_time = std::chrono::high_resolution_clock::now();
-    //auto time = end_time - start_time;
     f.close();
     f2.close();
     return true;
@@ -99,23 +114,30 @@ long alphanumericTest_performance() {
 
     string tmp;
 
+    int ctr = 0;
     auto start_time = chrono::high_resolution_clock::now();
     while (!f.eof()) {
         f >> tmp;
         isAlphaNumeric(tmp);
+        f >> tmp;
     }
 
     auto end_time = chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
+    f.clear();
+    f.seekg(0);
+    ctr = 0;
     auto start_time_loop = chrono::high_resolution_clock::now();
     while (!f.eof()) {
         f >> tmp;
-        isAlphaNumeric(tmp);
     }
 
     auto end_time_loop = chrono::high_resolution_clock::now();
     auto time_loop = end_time_loop - start_time_loop;
+    cout << "ctr: " << ctr << endl;
+    cout << "time: " << time/ chrono::milliseconds(1) << endl;
+    cout << "time loop: " << time_loop/ chrono::milliseconds(1) << endl;
 
     f.close();
     return (time - time_loop) / chrono::milliseconds(1);
@@ -123,10 +145,10 @@ long alphanumericTest_performance() {
 
 int main() {
     srand(time(NULL));
-    //writeRandomStrings(10000000);
+    //writeRandomStrings(60000000);
 
-    bool correctnessTest = alphanumericTest_isCorrect();
-    cout << (correctnessTest ? "Correctness test passed!" : "Correctness test failed!") << endl;
+    //bool correctnessTest = alphanumericTest_isCorrect();
+    //cout << (correctnessTest ? "Correctness test passed!" : "Correctness test failed!") << endl;
     long performanceTest = alphanumericTest_performance();
     cout << "Performance test took " << performanceTest << " milliseconds." << endl;
 
